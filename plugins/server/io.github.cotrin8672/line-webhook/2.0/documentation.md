@@ -1,14 +1,16 @@
-The LineWebhook plugin is used to verify signatures of incoming webhooks when utilizing the LINE Messaging API.
+# Line Webhook Plugin
+
+The LineWebhook plugin is used to verify signatures of incoming webhooks when utilizing the LINE Messaging API.  
 This ensures the webhooks are from the official LINE source, providing security for data transfer.
 
 ## About LINE
-LINE is a widely used messaging app, primarily in Asia.
-In addition to its messaging platform, LINE also provides a robust Messaging API. This enables developers to create sophisticated chat bots which can interact with users, providing a broad array of services and functionalities.
+LINE is a widely used messaging app, primarily in Asia.  
+In addition to its messaging platform, LINE also provides a robust Messaging API. This enables developers to create sophisticated chatbots that can interact with users, providing a broad array of services and functionalities.
 
 ## How it Works
 The verification process relies on a channel secret obtained from
-[LINE's Developer Console](https://developers.line.biz/console).
-This secret is used to compute a hash with the incoming message and is then compared against the "X-Line-Signature"
+[LINE's Developer Console](https://developers.line.biz/console).  
+This secret is used to compute a hash with the incoming message and is then compared against the **`X-Line-Signature`**
 in the header of the incoming request.
 
 If the signatures match, the request is deemed trustworthy and is proceeded with. Otherwise, the request is denied and a "Forbidden" response is returned.
@@ -19,12 +21,14 @@ implementation("io.github.cotrin8672:ktor-line-webhook-plugin:1.5.0")
 ```
 
 ## Usage
-Install this plugin only on endpoints that receive webhooks.
 ```kotlin
+Install this plugin only on endpoints that receive webhooks:
 route("/callback") {
     install(DoubleReceive)
-    install(LineSignatureVerification) {
-        channelSecret = System.getenv("CHANNEL_SECRET")
+    install(LineWebhook) {
+        // REQUIRED: provide your LINE channel secret
+        channelSecret = System.getenv("LINE_CHANNEL_SECRET")
+            ?: error("LINE_CHANNEL_SECRET not set")
     }
     post {
         call.respond(HttpStatusCode.OK)
@@ -32,7 +36,18 @@ route("/callback") {
 }
 ```
 
+## Install Example (standalone)
+If you prefer a full module example:
+```kotlin
+fun Application.module() {
+    install(LineWebhook) {
+        channelSecret = System.getenv("LINE_CHANNEL_SECRET")
+            ?: error("LINE_CHANNEL_SECRET not set")
+    }
+}
+```
+
 ## Additional Resources
-For more information on the LINE Messaging API and signature verification, refer to the
-[Official documentation](https://developers.line.biz/ja/docs/messaging-api/) and
-[Signature documentation](https://developers.line.biz/ja/docs/messaging-api/receiving-messages/#verify-signature).
+For more information on the LINE Messaging API and signature verification,
+Refer to the [Official documentation](https://developers.line.biz/ja/docs/messaging-api/)
+and [Signature documentation](https://developers.line.biz/ja/docs/messaging-api/receiving-messages/#verify-signature).
